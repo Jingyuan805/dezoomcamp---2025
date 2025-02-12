@@ -1,0 +1,56 @@
+-- Creating external table referring to gcs path
+CREATE OR REPLACE EXTERNAL TABLE `zoomcamp.external_yellow_tripdata`
+OPTIONS (
+  format = 'PARQUET',
+  uris = ['gs://jingyuan-dai-de-zoomcamp-kestra/yellow_tripdata_2024-*.parquet']
+);
+
+-- Create a regular table from external table
+CREATE OR REPLACE TABLE zoomcamp.yellow_tripdata_regular AS
+SELECT * FROM zoomcamp.external_yellow_tripdata;
+
+-- Question 1. Count of records for the 2024 Yellow Taxi Data 
+select count(*)
+from zoomcamp.yellow_tripdata_regular
+
+-- Question 2. Estimated amount of data
+select count(distinct PULocationID)
+from zoomcamp.yellow_tripdata_regular
+
+select count(distinct PULocationID)
+from zoomcamp.external_yellow_tripdata
+
+-- Question 3. Why are the estimated number of Bytes different? 
+select distinct PULocationID
+from zoomcamp.yellow_tripdata_regular
+
+select distinct PULocationID, DOLocationID
+from zoomcamp.yellow_tripdata_regular
+
+-- Question 4. How many records have a fare_amount of 0?
+select count(*)
+from zoomcamp.yellow_tripdata_regular
+where fare_amount = 0
+
+-- Question 5. The best strategy to make an optimized table in Big Query 
+-- Creating a partition and cluster table
+CREATE OR REPLACE TABLE zoomcamp.yellow_tripdata_partitioned_clustered
+PARTITION BY DATE(tpep_dropoff_datetime)
+CLUSTER BY VendorID AS
+SELECT * FROM zoomcamp.external_yellow_tripdata;
+
+
+-- Question 6. Estimated processed bytes 
+-- Write a query to retrieve the distinct VendorIDs between tpep_dropoff_datetime 2024-03-01 and 2024-03-15 (inclusive)
+select distinct VendorID
+from zoomcamp.yellow_tripdata_regular
+where tpep_dropoff_datetime >= '2024-03-01' and tpep_dropoff_datetime <= '2024-03-15'
+
+select distinct VendorID
+from zoomcamp.yellow_tripdata_partitioned_clustered
+where tpep_dropoff_datetime >= '2024-03-01' and tpep_dropoff_datetime <= '2024-03-15'
+
+
+
+
+
